@@ -28,7 +28,7 @@ class Vector {
 
 class Actor {
   constructor(pos = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
-
+    // По-моему проверка длины arguments - лишняя
     if (arguments.length > 0 && [pos, size, speed].some((vector) => !(vector instanceof Vector))) {
       throw new Error('Можно передавать только объекты типа Vector');
     }
@@ -62,6 +62,9 @@ class Actor {
 
   isIntersect(actor) {
 
+    // по-моему это лучше не выности в функцию,
+    // потому что используется только в одном месте
+    // и при чтении кода нужно бегать туда сюда, чтобы понять что происходит
     const checkIntersection = (a, b) => !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
 
     if (!(actor instanceof Actor) || actor === undefined) {
@@ -70,6 +73,7 @@ class Actor {
 
     if (actor === this) {
       return false;
+    // else тут не нужен - если выполнение зайдёт в if то функция прекратит выполнение
     } else {
       return checkIntersection(this, actor);
     }
@@ -86,18 +90,25 @@ class Actor {
 
 class Level {
   constructor(grid = [], actors = []) {
+    // Тут нужно создать копии массивов, чтобы нельзя было изменить поля объекта из вне
     this.grid = grid;
     this.actors = actors;
     this.player = actors.find(elem => elem.type === 'player');
 
+    // просто объявите через this.height - тогда высота не будет каждый раз пересчитываться при запросе поля height
+    // поля с get и set объявляются у классов как
+    // get height() { ... } и set height(value) { ... }
     Object.defineProperty(this, 'height', {
       get() {
+        // мне кажется проверка на массивы избыточна
         return (this.grid.every(level => Array.isArray(level))) ? this.grid.length : 1;
       }
     });
 
+    // аналогично
     Object.defineProperty(this, 'width', {
       get() {
+        // здесь можно намного проще записать с помощью Math.max и .map
         const startPoint = this.height > 1 ? this.grid[0].length : this.grid.length;
         return this.grid.reduce((memo, levelCell) => levelCell.length > memo ? levelCell.length : memo, startPoint);
       }
@@ -109,6 +120,7 @@ class Level {
   }
 
   isFinished() {
+    // здесь лучше написать просто return <условие>;
     if (this.status !== null && this.finishDelay < 0) {
       return true;
     }
@@ -123,10 +135,12 @@ class Level {
       throw new Error('Можно передавать только объекты типа Actor и аргумент не может быть пустым');
     }
 
+    // эта проверка избыточна, позаботится о том, что поля заполнены лучше в конструкторе
     if (this.grid === undefined && this.grid === undefined) {
     	return undefined;
     }
 
+    // тут лушче использовать метод find
     for (const curActor of this.actors) {
     	if (actor.isIntersect(curActor)) {
     		return curActor;
@@ -141,7 +155,8 @@ class Level {
     const rightBorder = Math.ceil(objectPosition.x + objectSize.x);
     const bottomBorder = Math.ceil(objectPosition.y + objectSize.y);
     const leftBorder = Math.floor(objectPosition.x);
-    
+
+    // если хочется использовать такую проверку её нужно вынести выше, до обращения к полям объектов
     if (!(objectPosition instanceof Vector) || !(objectSize instanceof Vector)) {
       throw new Error('Можно передавать только объекты типа Vector');
     }
@@ -173,11 +188,13 @@ class Level {
   }
 
   noMoreActors(actorType) {
-
+    // эту проверку можно убрать, если модифицировать код ниже
     if (this.actors.length === 0) {
       return true;
     }
 
+    // не используйте тренарный оператор сравнения когда в конце true или false
+    // return expr; или return !expr;
     return this.actors.some(actor => actor.type === actorType) ? false : true;
   }
 
@@ -192,11 +209,13 @@ class Level {
       return false;
     }
 
+    // здесь проще сравнить objectType с двумы значениями в if
     if (['lava', 'fireball'].find(item => item === objectType)) {
       this.status = 'lost';
 
     }
 
+    // вообще можно конечно обойтись без второй проверки, но пусть будет
     if (objectType === 'coin' && touchedActor.type === 'coin') {
       this.removeActor(touchedActor);
       if (this.noMoreActors('coin')) {
@@ -212,7 +231,9 @@ class Level {
  */
 
 class LevelParser {
+  // некорректное заничение по-умолчанию
   constructor(actorsSymbolDictionary = []) {
+    // здесь нужно создать копию объекта
     this.dictionary = actorsSymbolDictionary;
   }
 
@@ -221,6 +242,7 @@ class LevelParser {
       return undefined;
     }
 
+    // здесь нужно просто обратится к полю объекта
     if (Object.keys(this.dictionary).indexOf(actorSymbol) !== -1) {
       return this.dictionary[actorSymbol];
     }
@@ -243,12 +265,14 @@ class LevelParser {
   }
 
   createGrid(plan) {
+    // зачем Array.prototype.map?
     return plan.map((row) => Array.prototype.map.call(row, (cell) => this.obstacleFromSymbol(cell)));
   }
 
   createActors(plan) {
     const actors = [];
     plan.forEach((row, rowIndex) => {
+      // зачем Array.prototype.map?
       Array.prototype.forEach.call(row, (cell, cellIndex) => {
         if (typeof (this.actorFromSymbol(cell)) === 'function') {
           const actorClass = this.actorFromSymbol(cell);
@@ -285,6 +309,7 @@ class Fireball extends Actor{
   }
 
   getNextPosition(time = 1) {
+    // здесь нужно использовать plus и times
     return new Vector(this.pos.x + this.speed.x * time, this.pos.y + this.speed.y * time);
   }
 
@@ -310,8 +335,10 @@ class Fireball extends Actor{
  */
 
 class HorizontalFireball extends Fireball {
+    // лучше добавить значение по-умолчанию
     constructor(coords) {
         super(coords);
+        // параметры (в том числе speed) нужно задавать через базовый конструктор
         this.speed.x = 2;
     }
 }
@@ -321,8 +348,10 @@ class HorizontalFireball extends Fireball {
  */
 
 class VerticalFireball extends Fireball {
+    // лучше добавить значение по-умолчанию
     constructor(coords) {
         super(coords);
+        // параметры (в том числе speed) нужно задавать через базовый конструктор
         this.speed.y = 2;
     }
 }
@@ -332,8 +361,10 @@ class VerticalFireball extends Fireball {
  */
 
 class FireRain extends Fireball {
+    // лучше добавить значение по-умолчанию
     constructor(coords) {
         super(coords);
+        // параметры (в том числе speed) нужно задавать через базовый конструктор
         this.speed.y = 3;
         this.startPosition = coords;
     }
@@ -348,8 +379,11 @@ class FireRain extends Fireball {
  */
 
 class Coin extends Actor {
+    // вместо coords лучше везде использовать pos для единоообразия
+    // лучше добавить значение по-умолчанию
     constructor(coords) {
         super(coords);
+        // параметры (pos, speed) нужно задавать через базовый конструктор
         this.pos = this.pos.plus(new Vector(0.2, 0.1));
         this.size = new Vector(0.6, 0.6);
         this.springSpeed = 8;
@@ -385,8 +419,10 @@ class Coin extends Actor {
  */
 
 class Player extends Actor {
+  // лучше добавить значение по-умолчанию
   constructor(coords) {
     super(coords);
+    // через конструктор базового класса
     this.pos = this.pos.plus(new Vector(0, -0.5));
     this.size = new Vector(0.8, 1.5);
   }
@@ -404,7 +440,9 @@ function rand(max = 10, min = 0) {
  * Game
  */
 
+// тут, в принципе, можно и без обёртки обойтись
 const Game = (function(){
+  // вроде бы лишняя переменная
   let finalPlan;
   
   const actors = {
