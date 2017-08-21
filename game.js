@@ -126,13 +126,13 @@ class Level {
     }
 
     for (let y = topBorder; y < bottomBorder; y++) {
-            for (let x = leftBorder; x < rightBorder; x++) {
-                const fieldType = this.grid[y][x];
-                if (fieldType) {
-                    return fieldType;
-                }
-            }
+      for (let x = leftBorder; x < rightBorder; x++) {
+        const fieldType = this.grid[y][x];
+        if (fieldType) {
+          return fieldType;
         }
+      }
+    }
 
   }
 
@@ -144,7 +144,7 @@ class Level {
   }
 
   noMoreActors(actorType) {
-    return !(this.actors.some(actor => actor.type === actorType));
+    return !this.actors.some(actor => actor.type === actorType);
   }
 
 
@@ -183,11 +183,7 @@ class LevelParser {
   }
 
   actorFromSymbol(actorSymbol) {
-    if (actorSymbol === undefined) {
-      return undefined;
-    }
     return this.dictionary[actorSymbol];
-
   }
 
   obstacleFromSymbol(obstacleSymbol) {
