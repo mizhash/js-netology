@@ -16,7 +16,7 @@ class Vector {
     return new Vector(this.x + vector.x, this.y + vector.y);
   }
 
-  times(multiplier) {
+  times(multiplier = 1) {
     return new Vector(this.x * multiplier, this.y * multiplier);
   }
 }
@@ -61,7 +61,7 @@ class Actor {
 
   isIntersect(actor) {
 
-    if (!(actor instanceof Actor) || actor === undefined) {
+    if (!(actor instanceof Actor)) {
       throw new Error('Можно передавать только объекты типа Actor');
     }
 
@@ -69,7 +69,7 @@ class Actor {
       return false;
     }
 
-    return !(this.right <= actor.left || this.left >= actor.right || this.bottom <= actor.top || this.top >= actor.bottom);
+    return this.right > actor.left && this.left < actor.right && this.bottom > actor.top && this.top < actor.bottom;
 
   }
 }
@@ -85,7 +85,7 @@ class Level {
     this.actors = actors.slice();
     this.player = actors.find(elem => elem.type === 'player');
     this.height = this.grid.length;
-    this.width = this.grid.length > 0 ? Math.max.apply(null, this.grid.map(cell => cell.length)) : 0;
+    this.width = Math.max(0, ...this.grid.map(cell => cell.length));
     this.status = null;
     this.finishDelay = 1;
 
@@ -144,7 +144,7 @@ class Level {
   }
 
   noMoreActors(actorType) {
-    return !(this.actors.find(actor => actor.type === actorType));
+    return !(this.actors.some(actor => actor.type === actorType));
   }
 
 
@@ -204,7 +204,7 @@ class LevelParser {
   }
 
   createGrid(plan) {
-    return plan.map((row) => row.split('').map((cell) => this.obstacleFromSymbol(cell)));
+    return plan.map(row => row.split('').map(cell => this.obstacleFromSymbol(cell)));
   }
 
   createActors(plan) {
@@ -212,8 +212,8 @@ class LevelParser {
     plan.forEach((row, rowIndex) => {
 
       row.split('').forEach((cell, cellIndex) => {
-        if (typeof (this.actorFromSymbol(cell)) === 'function') {
-          const actorClass = this.actorFromSymbol(cell);
+        const actorClass = this.actorFromSymbol(cell);
+        if (typeof actorClass === 'function') {
           const actor = new actorClass(new Vector(cellIndex, rowIndex));
 
           if (actor instanceof Actor) {
@@ -259,8 +259,7 @@ class Fireball extends Actor{
     const isObstacle = level.obstacleAt(newPos, this.size);
     if (!isObstacle) {
         this.pos = newPos;
-    }
-    else {
+    } else {
         this.handleObstacle();
     }
   }
@@ -307,8 +306,8 @@ class FireRain extends Fireball {
  */
 
 class Coin extends Actor {
-    constructor(pos = new Vector(0, 0), size = new Vector(0.6, 0.6), speed = new Vector(0, 0)) {
-        super(pos.plus(new Vector(0.2, 0.1)), size, speed);
+    constructor(pos = new Vector(0, 0)) {
+        super(pos.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6), new Vector(0, 0));
         this.springSpeed = 8;
         this.springDist = 0.07;
         this.spring = rand(Math.PI * 2, 0);
@@ -342,17 +341,13 @@ class Coin extends Actor {
  */
 
 class Player extends Actor {
-  constructor(pos = new Vector(0, 0), size = new Vector(0.8, 1.5), speed = new Vector(0, 0)) {
-    super(pos.plus(new Vector(0, -0.5)), size, speed);
+  constructor(pos = new Vector(0, 0)) {
+    super(pos.plus(new Vector(0, -0.5)), new Vector(0.8, 1.5), new Vector(0, 0));
   }
 
   get type() {
     return 'player';
   }
-}
-
-function rand(max = 10, min = 0) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /**
