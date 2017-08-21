@@ -194,8 +194,6 @@ class LevelParser {
       case '!':
         return 'lava';
 
-      default:
-        return undefined;
     }
   }
 
@@ -252,11 +250,10 @@ class Fireball extends Actor{
 
   act(time, level) {
     const newPos = this.getNextPosition(time);
-    const isObstacle = level.obstacleAt(newPos, this.size);
-    if (!isObstacle) {
-        this.pos = newPos;
-    } else {
+    if (level.obstacleAt(newPos, this.size)) {
         this.handleObstacle();
+    } else {  
+        this.pos = newPos;
     }
   }
 
