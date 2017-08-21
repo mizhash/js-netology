@@ -112,10 +112,10 @@ class Level {
       throw new Error('Можно передавать только объекты типа Vector');
     }
 
-    const topBorder = Math.floor(objectPosition.y);
-    const rightBorder = Math.ceil(objectPosition.x + objectSize.x);
-    const bottomBorder = Math.ceil(objectPosition.y + objectSize.y);
-    const leftBorder = Math.floor(objectPosition.x);
+    const topBorder = objectPosition.y;
+    const rightBorder = objectPosition.x + objectSize.x;
+    const bottomBorder = objectPosition.y + objectSize.y;
+    const leftBorder = objectPosition.x;
 
     if (leftBorder < 0 || topBorder < 0 || rightBorder > this.width) {
       return 'wall'
@@ -125,8 +125,8 @@ class Level {
       return 'lava';
     }
 
-    for (let y = topBorder; y < bottomBorder; y++) {
-      for (let x = leftBorder; x < rightBorder; x++) {
+    for (let y = Math.floor(topBorder); y < Math.ceil(bottomBorder); y++) {
+      for (let x = Math.floor(leftBorder); x < Math.ceil(rightBorder); x++) {
         const fieldType = this.grid[y][x];
         if (fieldType) {
           return fieldType;
@@ -179,7 +179,7 @@ class Level {
 
 class LevelParser {
   constructor(actorsSymbolDictionary = {}) {
-    this.dictionary = Object.assign(actorsSymbolDictionary);
+    this.dictionary = Object.assign({}, actorsSymbolDictionary);
   }
 
   actorFromSymbol(actorSymbol) {
@@ -241,7 +241,7 @@ class Fireball extends Actor{
   }
 
   getNextPosition(time = 1) {
-    return new Vector(this.pos.x, this.pos.y).plus(this.speed.times(time));
+    return this.pos.plus(this.speed.times(time));
   }
 
   handleObstacle() {
@@ -252,7 +252,7 @@ class Fireball extends Actor{
     const newPos = this.getNextPosition(time);
     if (level.obstacleAt(newPos, this.size)) {
         this.handleObstacle();
-    } else {  
+    } else {
         this.pos = newPos;
     }
   }
