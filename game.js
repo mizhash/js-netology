@@ -264,8 +264,8 @@ class Fireball extends Actor{
  */
 
 class HorizontalFireball extends Fireball {
-    constructor(pos = new Vector(0, 0), speed = new Vector(2, 0)) {
-        super(pos, speed);
+    constructor(pos = new Vector(0, 0)) {
+        super(pos, new Vector(2, 0));
     }
 }
 
@@ -274,8 +274,8 @@ class HorizontalFireball extends Fireball {
  */
 
 class VerticalFireball extends Fireball {
-    constructor(pos = new Vector(0, 0), speed = new Vector(0, 2)) {
-        super(pos, speed);
+    constructor(pos = new Vector(0, 0)) {
+        super(pos, new Vector(0, 2));
     }
 }
 
@@ -284,8 +284,8 @@ class VerticalFireball extends Fireball {
  */
 
 class FireRain extends Fireball {
-    constructor(pos = new Vector(0, 0), speed = new Vector(0, 3)) {
-        super(pos, speed);
+    constructor(pos = new Vector(0, 0)) {
+        super(pos, new Vector(0, 3));
         this.startPosition = pos;
     }
 
